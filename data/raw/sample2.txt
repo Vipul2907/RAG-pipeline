@@ -1,0 +1,13 @@
+Vector Databases and Similarity Search
+
+Vector databases are specialized databases designed to store and query high-dimensional vectors efficiently. They are essential for applications like semantic search, recommendation systems, and retrieval-augmented generation (RAG).
+
+The fundamental operation in a vector database is similarity search: given a query vector, find the most similar vectors in the database. Similarity is typically measured using cosine similarity, Euclidean distance, or dot product.
+
+Traditional databases use B-trees or hash indexes which work well for exact matches but fail for high-dimensional vector similarity. Vector databases use approximate nearest neighbor (ANN) algorithms like HNSW (Hierarchical Navigable Small World), IVF (Inverted File Index), or LSH (Locality-Sensitive Hashing) to achieve fast approximate search.
+
+HNSW builds a multi-layer graph where each layer is a navigable small world graph. Higher layers have fewer nodes and longer connections for fast navigation, while lower layers have more nodes and shorter connections for accuracy. This hierarchical structure enables logarithmic search complexity.
+
+Popular vector databases include Pinecone, Weaviate, Milvus, Qdrant, and Chroma. They differ in deployment model (managed vs self-hosted), consistency guarantees, filtering capabilities, and ecosystem integrations.
+
+When choosing a vector database, consider factors like scale (number of vectors), query latency requirements, update frequency, metadata filtering needs, and operational complexity.

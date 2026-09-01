@@ -1,0 +1,255 @@
+[
+  {
+    "text": "Introduction to Machine Learning",
+    "source_file": "data\\raw\\sample1.txt",
+    "start_char": 0,
+    "end_char": 32,
+    "chunk_index": 0,
+    "metadata": {
+      "source_file": "data\\raw\\sample1.txt",
+      "paragraph_index": 0
+    }
+  },
+  {
+    "text": "Machine learning is a subset of artificial intelligence that focuses on building systems that can learn from data without being explicitly programmed. The core idea is to develop algorithms that can identify patterns in data and make predictions or decisions based on those patterns.",
+    "source_file": "data\\raw\\sample1.txt",
+    "start_char": 34,
+    "end_char": 317,
+    "chunk_index": 1,
+    "metadata": {
+      "source_file": "data\\raw\\sample1.txt",
+      "paragraph_index": 1
+    }
+  },
+  {
+    "text": "There are three main types of machine learning: supervised learning, unsupervised learning, and reinforcement learning. Supervised learning uses labeled training data to learn a mapping from inputs to outputs. Unsupervised learning finds hidden patterns in unlabeled data. Reinforcement learning learns through trial and error by interacting with an environment.",
+    "source_file": "data\\raw\\sample1.txt",
+    "start_char": 319,
+    "end_char": 681,
+    "chunk_index": 2,
+    "metadata": {
+      "source_file": "data\\raw\\sample1.txt",
+      "paragraph_index": 2
+    }
+  },
+  {
+    "text": "Key concepts in machine learning include features, labels, training sets, test sets, overfitting, underfitting, and generalization. Features are the input variables used to make predictions. Labels are the target outputs we want to predict. The training set is used to train the model, while the test set evaluates its performance on unseen data.",
+    "source_file": "data\\raw\\sample1.txt",
+    "start_char": 683,
+    "end_char": 1029,
+    "chunk_index": 3,
+    "metadata": {
+      "source_file": "data\\raw\\sample1.txt",
+      "paragraph_index": 3
+    }
+  },
+  {
+    "text": "Popular algorithms include linear regression, logistic regression, decision trees, random forests, support vector machines, and neural networks. Each algorithm has its strengths and weaknesses, and the choice depends on the problem type, data size, and interpretability requirements.",
+    "source_file": "data\\raw\\sample1.txt",
+    "start_char": 1031,
+    "end_char": 1314,
+    "chunk_index": 4,
+    "metadata": {
+      "source_file": "data\\raw\\sample1.txt",
+      "paragraph_index": 4
+    }
+  },
+  {
+    "text": "Vector Databases and Similarity Search",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 0,
+    "end_char": 38,
+    "chunk_index": 0,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 0
+    }
+  },
+  {
+    "text": "Vector databases are specialized databases designed to store and query high-dimensional vectors efficiently. They are essential for applications like semantic search, recommendation systems, and retrieval-augmented generation (RAG).",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 40,
+    "end_char": 272,
+    "chunk_index": 1,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 1
+    }
+  },
+  {
+    "text": "The fundamental operation in a vector database is similarity search: given a query vector, find the most similar vectors in the database. Similarity is typically measured using cosine similarity, Euclidean distance, or dot product.",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 274,
+    "end_char": 505,
+    "chunk_index": 2,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 2
+    }
+  },
+  {
+    "text": "Traditional databases use B-trees or hash indexes which work well for exact matches but fail for high-dimensional vector similarity. Vector databases use approximate nearest neighbor (ANN) algorithms like HNSW (Hierarchical Navigable Small World), IVF (Inverted File Index), or LSH (Locality-Sensitive Hashing) to achieve fast approximate search.",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 507,
+    "end_char": 853,
+    "chunk_index": 3,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 3
+    }
+  },
+  {
+    "text": "HNSW builds a multi-layer graph where each layer is a navigable small world graph. Higher layers have fewer nodes and longer connections for fast navigation, while lower layers have more nodes and shorter connections for accuracy. This hierarchical structure enables logarithmic search complexity.",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 855,
+    "end_char": 1152,
+    "chunk_index": 4,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 4
+    }
+  },
+  {
+    "text": "Popular vector databases include Pinecone, Weaviate, Milvus, Qdrant, and Chroma. They differ in deployment model (managed vs self-hosted), consistency guarantees, filtering capabilities, and ecosystem integrations.",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 1154,
+    "end_char": 1368,
+    "chunk_index": 5,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 5
+    }
+  },
+  {
+    "text": "When choosing a vector database, consider factors like scale (number of vectors), query latency requirements, update frequency, metadata filtering needs, and operational complexity.",
+    "source_file": "data\\raw\\sample2.txt",
+    "start_char": 1370,
+    "end_char": 1551,
+    "chunk_index": 6,
+    "metadata": {
+      "source_file": "data\\raw\\sample2.txt",
+      "paragraph_index": 6
+    }
+  },
+  {
+    "text": "# Retrieval-Augmented Generation (RAG)",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 0,
+    "end_char": 38,
+    "chunk_index": 0,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 0
+    }
+  },
+  {
+    "text": "## Overview",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 40,
+    "end_char": 51,
+    "chunk_index": 1,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 1
+    }
+  },
+  {
+    "text": "Retrieval-Augmented Generation (RAG) is an AI framework that combines information retrieval with text generation. It addresses the limitations of large language models (LLMs) by grounding their responses in external knowledge sources.",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 53,
+    "end_char": 287,
+    "chunk_index": 2,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 2
+    }
+  },
+  {
+    "text": "## How RAG Works",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 289,
+    "end_char": 305,
+    "chunk_index": 3,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 3
+    }
+  },
+  {
+    "text": "1. **Indexing**: Documents are split into chunks, embedded into vectors, and stored in a vector database.\n2. **Retrieval**: When a user asks a question, it's embedded and similar chunks are retrieved from the index.\n3. **Generation**: The retrieved chunks are provided as context to an LLM, which generates a grounded response.",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 307,
+    "end_char": 634,
+    "chunk_index": 4,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 4
+    }
+  },
+  {
+    "text": "## Benefits",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 636,
+    "end_char": 647,
+    "chunk_index": 5,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 5
+    }
+  },
+  {
+    "text": "- **Factual grounding**: Reduces hallucinations by providing source material\n- **Updatable knowledge**: Can add new documents without retraining the model\n- **Citations**: Can reference specific source documents\n- **Domain adaptation**: Works with private/proprietary data",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 649,
+    "end_char": 921,
+    "chunk_index": 6,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 6
+    }
+  },
+  {
+    "text": "## Challenges",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 923,
+    "end_char": 936,
+    "chunk_index": 7,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 7
+    }
+  },
+  {
+    "text": "- **Chunking strategy**: How to split documents optimally\n- **Embedding quality**: Choice of embedding model affects retrieval\n- **Context window**: Limited by LLM context size\n- **Latency**: Retrieval adds overhead to generation",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 938,
+    "end_char": 1167,
+    "chunk_index": 8,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 8
+    }
+  },
+  {
+    "text": "## Evaluation Metrics",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 1169,
+    "end_char": 1190,
+    "chunk_index": 9,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 9
+    }
+  },
+  {
+    "text": "- **Retrieval**: Recall@K, MRR, NDCG\n- **Generation**: Faithfulness, answer relevance, citation accuracy\n- **End-to-end**: User satisfaction, task completion rate",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 1192,
+    "end_char": 1354,
+    "chunk_index": 10,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 10
+    }
+  }
+]

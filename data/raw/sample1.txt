@@ -1,0 +1,9 @@
+Introduction to Machine Learning
+
+Machine learning is a subset of artificial intelligence that focuses on building systems that can learn from data without being explicitly programmed. The core idea is to develop algorithms that can identify patterns in data and make predictions or decisions based on those patterns.
+
+There are three main types of machine learning: supervised learning, unsupervised learning, and reinforcement learning. Supervised learning uses labeled training data to learn a mapping from inputs to outputs. Unsupervised learning finds hidden patterns in unlabeled data. Reinforcement learning learns through trial and error by interacting with an environment.
+
+Key concepts in machine learning include features, labels, training sets, test sets, overfitting, underfitting, and generalization. Features are the input variables used to make predictions. Labels are the target outputs we want to predict. The training set is used to train the model, while the test set evaluates its performance on unseen data.
+
+Popular algorithms include linear regression, logistic regression, decision trees, random forests, support vector machines, and neural networks. Each algorithm has its strengths and weaknesses, and the choice depends on the problem type, data size, and interpretability requirements.
