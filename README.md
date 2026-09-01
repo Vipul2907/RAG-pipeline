@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # RAG Pipeline
 
 A Retrieval-Augmented Generation (RAG) system with a **hand-rolled HNSW (Hierarchical Navigable Small World) vector index** built from scratch using NumPy. No external vector databases (FAISS, Chroma, Pinecone) — pure Python implementation for learning and demonstration purposes.
@@ -144,6 +145,9 @@ Three sample documents in `data/raw/`:
 ## License
 
 MIT License — Educational/Research project
+=======
+RAG pipeline
+>>>>>>> 625bf964d08a0c9cf5eab42c4c3e93b17b245bda
 =======
 RAG pipeline
 >>>>>>> 625bf964d08a0c9cf5eab42c4c3e93b17b245bda
