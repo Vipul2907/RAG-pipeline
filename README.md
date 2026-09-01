@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 # RAG Pipeline
 
 A Retrieval-Augmented Generation (RAG) system with a **hand-rolled HNSW (Hierarchical Navigable Small World) vector index** built from scratch using NumPy. No external vector databases (FAISS, Chroma, Pinecone) — pure Python implementation for learning and demonstration purposes.
@@ -14,7 +12,13 @@ A Retrieval-Augmented Generation (RAG) system with a **hand-rolled HNSW (Hierarc
 - Save/load persistence (.npy + .json)
 - End-to-end verification script
 
-**Next**: Phase 2 — HNSW graph index implementation
+**Phase 2 Complete**: HNSW graph index implementation ✅
+- Multi-layer graph construction with exponential level distribution
+- Greedy search with entry point selection
+- Configurable `M`, `M0`, `ef_construction`, `ef_search` parameters
+- Neighbor selection and connection pruning heuristics
+- Save/load persistence
+- Benchmark script with Recall@K evaluation
 
 ## Quick Start
 
@@ -34,6 +38,9 @@ python -m src.cli search "What is machine learning?"
 # Run verification
 python scripts/verify_baseline.py
 
+# Run HNSW benchmark
+python scripts/benchmark_hnsw.py --n-vectors 2000 --ef-search 200
+
 # Run tests
 pytest tests/ -v
 ```
@@ -51,7 +58,8 @@ src/
 │   │   └── provider.py        # Embedding provider abstraction
 │   ├── index/
 │   │   ├── base.py            # Abstract VectorIndex base class
-│   │   └── brute_force.py     # Flat cosine similarity baseline
+│   │   ├── brute_force.py     # Flat cosine similarity baseline
+│   │   └── hnsw.py            # HNSW graph index
 │   └── query/
 │       └── engine.py          # Query orchestration
 └── cli/
@@ -78,6 +86,14 @@ src/
 - Save/load: `embeddings.npy` + `chunks.json` + `config.json`
 - Filter function support for metadata-based filtering
 - **Correctness anchor** for HNSW validation
+
+### HNSWIndex (`src/rag/index/hnsw.py`)
+- Hierarchical Navigable Small World graph
+- Multi-layer structure with exponential level distribution
+- Greedy descent from top layer to layer 0
+- Best-first search with dynamic candidate list (ef parameter)
+- Neighbor selection and connection pruning heuristics
+- Configurable: `M`, `M0`, `ef_construction`, `ef_search`, `mL`
 
 ### QueryEngine (`src/rag/query/engine.py`)
 - High-level search interface
@@ -125,6 +141,26 @@ The verification script (`scripts/verify_baseline.py`) runs a complete end-to-en
 6. Runs sample queries and displays results
 7. Validates cosine similarity math with known vectors
 
+## HNSW Benchmark
+
+The benchmark script (`scripts/benchmark_hnsw.py`) evaluates HNSW against brute-force:
+
+```bash
+# Basic benchmark
+python scripts/benchmark_hnsw.py --n-vectors 2000 --ef-search 200
+
+# Parameter sweep
+python scripts/benchmark_hnsw.py --sweep
+```
+
+**Key Results (2000 vectors, ef_search=200):**
+- Recall@1: 100%
+- Recall@5: 100%
+- Recall@10: 99.7% ✅ (target: >90%)
+- Speedup: 0.06x (Python overhead vs NumPy C-optimized brute force)
+
+**Note**: Pure Python HNSW cannot beat NumPy's C-optimized matrix multiplication at small scales. HNSW's algorithmic advantage (O(log n) vs O(n)) emerges at 100k+ vectors. For production, use hnswlib or FAISS.
+
 ## Sample Data
 
 Three sample documents in `data/raw/`:
@@ -132,22 +168,6 @@ Three sample documents in `data/raw/`:
 - `sample2.txt` — Vector Databases and Similarity Search
 - `sample3.md` — Retrieval-Augmented Generation (RAG)
 
-## Phase 2 Roadmap (HNSW)
-
-- [ ] `HNSWIndex` class implementing `VectorIndex` interface
-- [ ] Multi-layer graph construction
-- [ ] Greedy search with entry point selection
-- [ ] `efConstruction` and `efSearch` parameters
-- [ ] `M` (max connections) and `M0` (layer 0 connections)
-- [ ] Benchmark against brute-force baseline
-- [ ] Recall@K evaluation
-
 ## License
 
 MIT License — Educational/Research project
-=======
-RAG pipeline
->>>>>>> 625bf964d08a0c9cf5eab42c4c3e93b17b245bda
-=======
-RAG pipeline
->>>>>>> 625bf964d08a0c9cf5eab42c4c3e93b17b245bda
