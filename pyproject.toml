@@ -19,11 +19,35 @@ optional-dependencies = {
         "pytest-cov>=4.1.0",
         "ruff>=0.5.0",
         "mypy>=1.10.0",
-    ]
+    ],
+    "ui" = [
+        "streamlit>=1.35.0",
+    ],
+    "huggingface" = [
+        "sentence-transformers>=2.2.0",
+        "torch>=2.0.0",
+    ],
+    "openai" = [
+        "openai>=1.30.0",
+    ],
+    "anthropic" = [
+        "anthropic>=0.25.0",
+    ],
+    "groq" = [
+        "openai>=1.30.0",
+    ],
+    "all" = [
+        "streamlit>=1.35.0",
+        "sentence-transformers>=2.2.0",
+        "torch>=2.0.0",
+        "openai>=1.30.0",
+        "anthropic>=0.25.0",
+    ],
 }
 
 [project.scripts]
 rag-cli = "rag.cli:main"
+rag-ui = "ui.app:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
