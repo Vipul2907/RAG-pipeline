@@ -1,5 +1,5 @@
 """Query engine module."""
 
-from .engine import QueryEngine, QueryResult
+from .engine import QueryEngine, QueryResult, RAGResult, Citation
 
-__all__ = ["QueryEngine", "QueryResult"]
+__all__ = ["QueryEngine", "QueryResult", "RAGResult", "Citation"]
