@@ -17,6 +17,7 @@ from rag.ingestion import DocumentChunker
 from rag.embeddings import get_embedding_provider
 from rag.index import BruteForceIndex
 from rag.query import QueryEngine
+from rag.llm import get_llm_provider
 
 
 def main():
@@ -74,7 +75,9 @@ def main():
 
     # 6. Search tests
     print("\n6. Running search tests...")
-    engine = QueryEngine(loaded_index)
+    # Use dummy LLM provider for testing (no API key required)
+    dummy_llm = get_llm_provider("dummy")
+    engine = QueryEngine(loaded_index, llm_provider=dummy_llm)
 
     test_queries = [
         "What is machine learning?",
