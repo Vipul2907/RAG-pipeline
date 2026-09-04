@@ -132,25 +132,17 @@
     }
   },
   {
-    "text": "# Retrieval-Augmented Generation (RAG)",
+    "text": "# Retrieval-Augmented Generation (RAG)\n\n## Overview",
     "source_file": "data\\raw\\sample3.md",
     "start_char": 0,
-    "end_char": 38,
+    "end_char": 51,
     "chunk_index": 0,
     "metadata": {
       "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 0
-    }
-  },
-  {
-    "text": "## Overview",
-    "source_file": "data\\raw\\sample3.md",
-    "start_char": 40,
-    "end_char": 51,
-    "chunk_index": 1,
-    "metadata": {
-      "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 1
+      "paragraph_index": 0,
+      "merged_from_header": true,
+      "original_header_chunk_index": 0,
+      "original_content_chunk_index": 1
     }
   },
   {
@@ -158,98 +150,66 @@
     "source_file": "data\\raw\\sample3.md",
     "start_char": 53,
     "end_char": 287,
-    "chunk_index": 2,
+    "chunk_index": 1,
     "metadata": {
       "source_file": "data\\raw\\sample3.md",
       "paragraph_index": 2
     }
   },
   {
-    "text": "## How RAG Works",
+    "text": "## How RAG Works\n\n1. **Indexing**: Documents are split into chunks, embedded into vectors, and stored in a vector database.\n2. **Retrieval**: When a user asks a question, it's embedded and similar chunks are retrieved from the index.\n3. **Generation**: The retrieved chunks are provided as context to an LLM, which generates a grounded response.",
     "source_file": "data\\raw\\sample3.md",
     "start_char": 289,
-    "end_char": 305,
+    "end_char": 634,
+    "chunk_index": 2,
+    "metadata": {
+      "source_file": "data\\raw\\sample3.md",
+      "paragraph_index": 3,
+      "merged_from_header": true,
+      "original_header_chunk_index": 3,
+      "original_content_chunk_index": 4
+    }
+  },
+  {
+    "text": "## Benefits\n\n- **Factual grounding**: Reduces hallucinations by providing source material\n- **Updatable knowledge**: Can add new documents without retraining the model\n- **Citations**: Can reference specific source documents\n- **Domain adaptation**: Works with private/proprietary data",
+    "source_file": "data\\raw\\sample3.md",
+    "start_char": 636,
+    "end_char": 921,
     "chunk_index": 3,
     "metadata": {
       "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 3
+      "paragraph_index": 5,
+      "merged_from_header": true,
+      "original_header_chunk_index": 5,
+      "original_content_chunk_index": 6
     }
   },
   {
-    "text": "1. **Indexing**: Documents are split into chunks, embedded into vectors, and stored in a vector database.\n2. **Retrieval**: When a user asks a question, it's embedded and similar chunks are retrieved from the index.\n3. **Generation**: The retrieved chunks are provided as context to an LLM, which generates a grounded response.",
+    "text": "## Challenges\n\n- **Chunking strategy**: How to split documents optimally\n- **Embedding quality**: Choice of embedding model affects retrieval\n- **Context window**: Limited by LLM context size\n- **Latency**: Retrieval adds overhead to generation",
     "source_file": "data\\raw\\sample3.md",
-    "start_char": 307,
-    "end_char": 634,
+    "start_char": 923,
+    "end_char": 1167,
     "chunk_index": 4,
     "metadata": {
       "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 4
+      "paragraph_index": 7,
+      "merged_from_header": true,
+      "original_header_chunk_index": 7,
+      "original_content_chunk_index": 8
     }
   },
   {
-    "text": "## Benefits",
+    "text": "## Evaluation Metrics\n\n- **Retrieval**: Recall@K, MRR, NDCG\n- **Generation**: Faithfulness, answer relevance, citation accuracy\n- **End-to-end**: User satisfaction, task completion rate",
     "source_file": "data\\raw\\sample3.md",
-    "start_char": 636,
-    "end_char": 647,
+    "start_char": 1169,
+    "end_char": 1354,
     "chunk_index": 5,
     "metadata": {
       "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 5
-    }
-  },
-  {
-    "text": "- **Factual grounding**: Reduces hallucinations by providing source material\n- **Updatable knowledge**: Can add new documents without retraining the model\n- **Citations**: Can reference specific source documents\n- **Domain adaptation**: Works with private/proprietary data",
-    "source_file": "data\\raw\\sample3.md",
-    "start_char": 649,
-    "end_char": 921,
-    "chunk_index": 6,
-    "metadata": {
-      "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 6
-    }
-  },
-  {
-    "text": "## Challenges",
-    "source_file": "data\\raw\\sample3.md",
-    "start_char": 923,
-    "end_char": 936,
-    "chunk_index": 7,
-    "metadata": {
-      "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 7
-    }
-  },
-  {
-    "text": "- **Chunking strategy**: How to split documents optimally\n- **Embedding quality**: Choice of embedding model affects retrieval\n- **Context window**: Limited by LLM context size\n- **Latency**: Retrieval adds overhead to generation",
-    "source_file": "data\\raw\\sample3.md",
-    "start_char": 938,
-    "end_char": 1167,
-    "chunk_index": 8,
-    "metadata": {
-      "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 8
-    }
-  },
-  {
-    "text": "## Evaluation Metrics",
-    "source_file": "data\\raw\\sample3.md",
-    "start_char": 1169,
-    "end_char": 1190,
-    "chunk_index": 9,
-    "metadata": {
-      "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 9
-    }
-  },
-  {
-    "text": "- **Retrieval**: Recall@K, MRR, NDCG\n- **Generation**: Faithfulness, answer relevance, citation accuracy\n- **End-to-end**: User satisfaction, task completion rate",
-    "source_file": "data\\raw\\sample3.md",
-    "start_char": 1192,
-    "end_char": 1354,
-    "chunk_index": 10,
-    "metadata": {
-      "source_file": "data\\raw\\sample3.md",
-      "paragraph_index": 10
+      "paragraph_index": 9,
+      "merged_from_header": true,
+      "original_header_chunk_index": 9,
+      "original_content_chunk_index": 10
     }
   }
 ]
