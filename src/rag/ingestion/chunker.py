@@ -140,8 +140,93 @@ class DocumentChunker:
 
             char_offset = para_end
 
+        # Post-process: merge header chunks with their following content
+        chunks = self._merge_header_chunks(chunks)
+
         logger.info(f"Chunked {source_path}: {len(chunks)} chunks from {len(paragraphs)} paragraphs")
         return chunks
+
+    def _merge_header_chunks(self, chunks: List[Chunk]) -> List[Chunk]:
+        """
+        Merge short header-like chunks with the following content chunk.
+
+        Detects chunks that are likely headers (short, start with #) and merges
+        them with the immediately following chunk to keep header + content together.
+
+        Args:
+            chunks: List of initial chunks.
+
+        Returns:
+            List of chunks with headers merged into following content.
+        """
+        if len(chunks) < 2:
+            return chunks
+
+        merged = []
+        i = 0
+
+        while i < len(chunks):
+            current = chunks[i]
+
+            # Check if current chunk is a header-like chunk:
+            # - Short (<= 120 chars)
+            # - Starts with markdown header (# ## ### etc.) or "Interview Question" or "Advanced Note"
+            # - Not the last chunk
+            is_header = (
+                len(current.text) <= 120
+                and i + 1 < len(chunks)
+                and (
+                    current.text.lstrip().startswith(("#", "##", "###", "####", "#####", "######"))
+                    or current.text.lstrip().lower().startswith("interview question")
+                    or current.text.lstrip().lower().startswith("advanced note")
+                    or current.text.lstrip().lower().startswith("note:")
+                    or current.text.lstrip().lower().startswith("question:")
+                )
+            )
+
+            if is_header:
+                # Merge with next chunk
+                next_chunk = chunks[i + 1]
+                merged_text = current.text + "\n\n" + next_chunk.text
+
+                # Create merged chunk with combined metadata
+                merged_meta = current.metadata.copy()
+                merged_meta.update({
+                    "merged_from_header": True,
+                    "original_header_chunk_index": current.chunk_index,
+                    "original_content_chunk_index": next_chunk.chunk_index,
+                })
+
+                merged.append(
+                    Chunk(
+                        text=merged_text,
+                        source_file=current.source_file,
+                        start_char=current.start_char,
+                        end_char=next_chunk.end_char,
+                        chunk_index=len(merged),
+                        metadata=merged_meta,
+                    )
+                )
+                i += 2  # Skip both chunks
+            else:
+                # Keep chunk as-is, but update chunk_index
+                if current.chunk_index != len(merged):
+                    # Need to create new chunk with updated index
+                    merged.append(
+                        Chunk(
+                            text=current.text,
+                            source_file=current.source_file,
+                            start_char=current.start_char,
+                            end_char=current.end_char,
+                            chunk_index=len(merged),
+                            metadata=current.metadata,
+                        )
+                    )
+                else:
+                    merged.append(current)
+                i += 1
+
+        return merged
 
     def _split_paragraphs(self, text: str) -> List[str]:
         """
