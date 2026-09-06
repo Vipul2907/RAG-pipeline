@@ -55,6 +55,38 @@ class LLMProvider(ABC):
         pass
 
 
+class DummyLLMProvider(LLMProvider):
+    """
+    Dummy LLM provider for testing.
+
+    Returns a fixed response without calling any external API.
+    Useful for testing the RAG pipeline without API keys.
+    """
+
+    def __init__(self, model_name: str = "dummy-test-model", default_response: Optional[str] = None):
+        self._model_name = model_name
+        self._default_response = default_response or "This is a dummy response for testing purposes."
+
+    @property
+    def model_name(self) -> str:
+        return self._model_name
+
+    def generate(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        max_tokens: int = 1024,
+        temperature: float = 0.1,
+        **kwargs,
+    ) -> GenerationResult:
+        """Generate a dummy response."""
+        return GenerationResult(
+            text=self._default_response,
+            model=self._model_name,
+            usage={"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        )
+
+
 class AnthropicProvider(LLMProvider):
     """
     Anthropic Claude API provider.
@@ -412,7 +444,7 @@ def get_llm_provider(provider_name: Optional[str] = None, **kwargs) -> LLMProvid
     Factory function to get an LLM provider by name.
 
     Args:
-        provider_name: Name of provider ("anthropic", "openai", "groq", or from config).
+        provider_name: Name of provider ("anthropic", "openai", "groq", "dummy", or from config).
         **kwargs: Additional arguments passed to the provider constructor.
 
     Returns:
@@ -429,9 +461,11 @@ def get_llm_provider(provider_name: Optional[str] = None, **kwargs) -> LLMProvid
         return OpenAIProvider(**kwargs)
     elif name in ("groq",):
         return GroqProvider(**kwargs)
+    elif name in ("dummy", "test"):
+        return DummyLLMProvider(**kwargs)
     else:
         raise ValueError(
             f"Unknown LLM provider: {name}. "
-            f"Supported: 'anthropic', 'openai', 'groq'. "
+            f"Supported: 'anthropic', 'openai', 'groq', 'dummy'. "
             f"Set LLM_PROVIDER env var or pass provider_name."
         )
