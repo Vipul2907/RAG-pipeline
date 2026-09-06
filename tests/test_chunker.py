@@ -231,5 +231,63 @@ class TestChunkDataclass:
             Chunk(text="", source_file="test.txt", start_char=0, end_char=0, chunk_index=0)
 
 
+class TestHeaderMerging:
+    """Tests for header chunk merging functionality."""
+
+    def test_merge_markdown_header_with_content(self):
+        """Test that markdown headers are merged with following content."""
+        chunker = DocumentChunker(chunk_size=512, overlap=50)
+        text = "### Interview Question 16: What are the main limitations of ANI?\n\nArtificial Narrow Intelligence (ANI) has several key limitations. It cannot generalize beyond its training domain."
+        chunks = chunker.chunk_text(text, "test.md")
+
+        # Should produce 1 merged chunk instead of 2 separate chunks
+        assert len(chunks) == 1
+        assert "### Interview Question 16:" in chunks[0].text
+        assert "Artificial Narrow Intelligence" in chunks[0].text
+        assert chunks[0].metadata.get("merged_from_header") is True
+
+    def test_merge_advanced_note_with_content(self):
+        """Test that 'Advanced Note' headers are merged with content."""
+        chunker = DocumentChunker(chunk_size=512, overlap=50)
+        text = "## Advanced Note 156: Retrieval failure taxonomy\n\nRetrieval failures can be categorized into three types: semantic mismatch, index coverage gaps, and ranking errors."
+        chunks = chunker.chunk_text(text, "test.md")
+
+        assert len(chunks) == 1
+        assert "Advanced Note 156:" in chunks[0].text
+        assert "Retrieval failures can be categorized" in chunks[0].text
+
+    def test_merge_qlearning_header_with_content(self):
+        """Test that 'Q-learning' style headers are merged."""
+        chunker = DocumentChunker(chunk_size=512, overlap=50)
+        text = "## Q-learning update rule\n\nThe Q-learning update rule is: Q(s,a) = Q(s,a) + alpha * (r + gamma * max Q(s',a') - Q(s,a))."
+        chunks = chunker.chunk_text(text, "test.md")
+
+        assert len(chunks) == 1
+        assert "Q-learning update rule" in chunks[0].text
+        assert "alpha * (r + gamma" in chunks[0].text
+
+    def test_no_merge_for_regular_paragraphs(self):
+        """Test that regular paragraphs without headers are not merged."""
+        chunker = DocumentChunker(chunk_size=512, overlap=50)
+        text = "This is a regular paragraph.\n\nThis is another regular paragraph."
+        chunks = chunker.chunk_text(text, "test.md")
+
+        # Should produce 2 separate chunks
+        assert len(chunks) == 2
+        assert chunks[0].text == "This is a regular paragraph."
+        assert chunks[1].text == "This is another regular paragraph."
+
+    def test_header_merge_metadata(self):
+        """Test that merged chunks have correct metadata."""
+        chunker = DocumentChunker(chunk_size=512, overlap=50)
+        text = "### Header\n\nContent here."
+        chunks = chunker.chunk_text(text, "test.md")
+
+        assert len(chunks) == 1
+        meta = chunks[0].metadata
+        assert meta.get("merged_from_header") is True
+        assert "original_header_chunk_index" in meta
+        assert "original_content_chunk_index" in meta
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
