@@ -153,6 +153,10 @@ class DocumentChunker:
         Detects chunks that are likely headers (short, start with #) and merges
         them with the immediately following chunk to keep header + content together.
 
+        Does NOT merge headers that are already complete questions (contain "?")
+        or are long descriptive headers, as these are already self-contained
+        and merging them dilutes their specificity for retrieval.
+
         Args:
             chunks: List of initial chunks.
 
@@ -167,21 +171,52 @@ class DocumentChunker:
 
         while i < len(chunks):
             current = chunks[i]
+            text = current.text.lstrip()
 
-            # Check if current chunk is a header-like chunk:
-            # - Short (<= 120 chars)
-            # - Starts with markdown header (# ## ### etc.) or "Interview Question" or "Advanced Note"
+            # Check if current chunk is a header-like chunk that should be merged:
+            # - Short (<= 100 chars for markdown headers, <= 80 for others)
+            # - Starts with markdown header (# ## ### etc.) or known header patterns
+            # - Does NOT contain a question mark (already a complete question)
             # - Not the last chunk
+            is_markdown_header = text.startswith(("#", "##", "###", "####", "#####", "######"))
+            is_known_header_pattern = (
+                text.lower().startswith("interview question")
+                or text.lower().startswith("advanced note")
+                or text.lower().startswith("note:")
+                or text.lower().startswith("question:")
+                or text.lower().startswith("exam question")
+                or text.lower().startswith("key concept")
+                or text.lower().startswith("summary:")
+                or text.lower().startswith("definition:")
+                or text.lower().startswith("theorem:")
+                or text.lower().startswith("proof:")
+                or text.lower().startswith("algorithm:")
+                or text.lower().startswith("example:")
+                or text.lower().startswith("exercise:")
+                or text.lower().startswith("problem:")
+                or text.lower().startswith("solution:")
+                or text.lower().startswith("important:")
+                or text.lower().startswith("warning:")
+                or text.lower().startswith("tip:")
+                or text.lower().startswith("remember:")
+            )
+
+            # Don't merge if it's already a complete question (has ?)
+            is_complete_question = "?" in text
+
+            # Length thresholds: stricter for markdown headers, more lenient for known patterns
+            if is_markdown_header:
+                max_header_len = 100
+            elif is_known_header_pattern:
+                max_header_len = 80
+            else:
+                max_header_len = 0  # Not a header pattern
+
             is_header = (
-                len(current.text) <= 120
+                len(current.text) <= max_header_len
+                and max_header_len > 0
                 and i + 1 < len(chunks)
-                and (
-                    current.text.lstrip().startswith(("#", "##", "###", "####", "#####", "######"))
-                    or current.text.lstrip().lower().startswith("interview question")
-                    or current.text.lstrip().lower().startswith("advanced note")
-                    or current.text.lstrip().lower().startswith("note:")
-                    or current.text.lstrip().lower().startswith("question:")
-                )
+                and not is_complete_question
             )
 
             if is_header:
