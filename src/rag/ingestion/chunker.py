@@ -201,8 +201,16 @@ class DocumentChunker:
                 or text.lower().startswith("remember:")
             )
 
-            # Don't merge if it's already a complete question (has ?)
-            is_complete_question = "?" in text
+            # Don't merge if it's already a complete question (has ?) AND
+            # doesn't match known Q&A patterns that need their answers
+            is_qa_pattern = (
+                text.lower().startswith("interview question")
+                or text.lower().startswith("exam question")
+                or text.lower().startswith("quiz question")
+                or text.lower().startswith("practice question")
+                or text.lower().startswith("sample question")
+            )
+            is_complete_question = "?" in text and not is_qa_pattern
 
             # Length thresholds: stricter for markdown headers, more lenient for known patterns
             if is_markdown_header:
