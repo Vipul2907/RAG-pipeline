@@ -235,16 +235,31 @@ class TestHeaderMerging:
     """Tests for header chunk merging functionality."""
 
     def test_merge_markdown_header_with_content(self):
-        """Test that markdown headers are merged with following content."""
+        """Test that markdown headers (without question marks) are merged with following content."""
         chunker = DocumentChunker(chunk_size=512, overlap=50)
-        text = "### Interview Question 16: What are the main limitations of ANI?\n\nArtificial Narrow Intelligence (ANI) has several key limitations. It cannot generalize beyond its training domain."
+        # Markdown headers without ? should be merged
+        text = "### Limitations of ANI\n\nArtificial Narrow Intelligence (ANI) has several key limitations. It cannot generalize beyond its training domain."
         chunks = chunker.chunk_text(text, "test.md")
 
         # Should produce 1 merged chunk instead of 2 separate chunks
         assert len(chunks) == 1
-        assert "### Interview Question 16:" in chunks[0].text
+        assert "### Limitations of ANI" in chunks[0].text
         assert "Artificial Narrow Intelligence" in chunks[0].text
         assert chunks[0].metadata.get("merged_from_header") is True
+
+    def test_no_merge_for_qa_headers(self):
+        """Test that markdown headers with question marks (Q&A style) are NOT merged."""
+        chunker = DocumentChunker(chunk_size=512, overlap=50)
+        text = "### Interview Question 16: What are the main limitations of ANI?\n\nArtificial Narrow Intelligence (ANI) has several key limitations. It cannot generalize beyond its training domain."
+        chunks = chunker.chunk_text(text, "test.md")
+
+        # Q&A style headers should NOT be merged - question and answer stay separate
+        # for better retrieval specificity
+        assert len(chunks) == 2
+        assert "### Interview Question 16:" in chunks[0].text
+        assert "Artificial Narrow Intelligence" in chunks[1].text
+        assert chunks[0].metadata.get("merged_from_header") is not True
+        assert chunks[1].metadata.get("merged_from_header") is not True
 
     def test_merge_advanced_note_with_content(self):
         """Test that 'Advanced Note' headers are merged with content."""
