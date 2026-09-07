@@ -204,16 +204,11 @@ class DocumentChunker:
                 or text_no_md.lower().startswith("remember:")
             )
 
-            # Don't merge if it's already a complete question (has ?) AND
-            # doesn't match known Q&A patterns that need their answers
-            is_qa_pattern = (
-                text_no_md.lower().startswith("interview question")
-                or text_no_md.lower().startswith("exam question")
-                or text_no_md.lower().startswith("quiz question")
-                or text_no_md.lower().startswith("practice question")
-                or text_no_md.lower().startswith("sample question")
-            )
-            is_complete_question = "?" in text and not is_qa_pattern
+            # Don't merge if it's a complete question (has ?) - these should stay
+            # separate so the question itself remains a precise retrieval target.
+            # Only merge "title-like" headers without questions (e.g., "Advanced Note: ...",
+            # "Q-learning update rule", "Summary: ...").
+            is_complete_question = "?" in text
 
             # Length thresholds: stricter for markdown headers, more lenient for known patterns
             if is_markdown_header:
