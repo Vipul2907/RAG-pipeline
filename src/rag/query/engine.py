@@ -17,6 +17,65 @@ from ..ingestion import Chunk
 from ..llm import LLMProvider, GenerationResult, get_llm_provider
 
 
+def _deduplicate_results(
+    results: List[SearchResult],
+    similarity_threshold: float = 0.95,
+) -> List[SearchResult]:
+    """
+    Remove near-duplicate chunks from search results.
+
+    Keeps the highest-scoring chunk from each near-duplicate group.
+    Two chunks are considered near-duplicates if their text cosine
+    similarity (using simple word overlap) exceeds the threshold.
+
+    Args:
+        results: List of search results from the index.
+        similarity_threshold: Threshold for considering chunks as duplicates (0-1).
+
+    Returns:
+        Deduplicated list of results, preserving original score order.
+    """
+    if not results:
+        return results
+
+    # Simple word-based Jaccard similarity for deduplication
+    # (avoids needing to re-embed; fast and effective for boilerplate)
+    def _word_set(text: str) -> set:
+        return set(text.lower().split())
+
+    def _jaccard_similarity(text1: str, text2: str) -> float:
+        set1 = _word_set(text1)
+        set2 = _word_set(text2)
+        if not set1 or not set2:
+            return 0.0
+        intersection = len(set1 & set2)
+        union = len(set1 | set2)
+        return intersection / union if union > 0 else 0.0
+
+    deduplicated = []
+    seen_texts = []
+
+    for result in results:
+        chunk_text = result.chunk.text
+        is_duplicate = False
+
+        for seen_text in seen_texts:
+            if _jaccard_similarity(chunk_text, seen_text) >= similarity_threshold:
+                is_duplicate = True
+                logger.debug(
+                    f"Dropping near-duplicate chunk (score={result.score:.4f}) "
+                    f"similar to already-selected chunk"
+                )
+                break
+
+        if not is_duplicate:
+            deduplicated.append(result)
+            seen_texts.append(chunk_text)
+
+    logger.info(f"Deduplicated {len(results)} -> {len(deduplicated)} results")
+    return deduplicated
+
+
 @dataclass(frozen=True)
 class QueryResult:
     """
@@ -118,14 +177,18 @@ Context documents:
         query: str,
         k: int = None,
         filter_fn: Optional[callable] = None,
+        deduplicate: bool = True,
+        dedup_threshold: float = 0.95,
     ) -> QueryResult:
         """
         Search the index for relevant chunks (retrieval only).
 
         Args:
             query: Query text string.
-            k: Number of results (default from config).
+            k: Number of results to return after deduplication (default from config).
             filter_fn: Optional filter function for results.
+            deduplicate: Whether to remove near-duplicate chunks (default: True).
+            dedup_threshold: Jaccard similarity threshold for deduplication (default: 0.95).
 
         Returns:
             QueryResult with search results.
@@ -135,8 +198,16 @@ Context documents:
         # Embed query
         query_embedding = self._embedding_provider.embed_single(query)
 
-        # Search index
-        results = self._index.search(query_embedding, k=k, filter_fn=filter_fn)
+        # Search index with extra results to account for deduplication
+        # Fetch 2*k to ensure we have enough after dropping duplicates
+        search_k = k * 2 if deduplicate else k
+        results = self._index.search(query_embedding, k=search_k, filter_fn=filter_fn)
+
+        # Deduplicate near-identical chunks (e.g., boilerplate "Limitations" sections)
+        if deduplicate and results:
+            results = _deduplicate_results(results, similarity_threshold=dedup_threshold)
+            # Trim to requested k after deduplication
+            results = results[:k]
 
         logger.info(f"Query '{query[:50]}...': found {len(results)} results")
 
@@ -151,21 +222,32 @@ Context documents:
         query_embedding: np.ndarray,
         k: int = None,
         filter_fn: Optional[callable] = None,
+        deduplicate: bool = True,
+        dedup_threshold: float = 0.95,
     ) -> QueryResult:
         """
         Search using a pre-computed query embedding.
 
         Args:
             query_embedding: Pre-computed query vector.
-            k: Number of results (default from config).
+            k: Number of results to return after deduplication (default from config).
             filter_fn: Optional filter function for results.
+            deduplicate: Whether to remove near-duplicate chunks (default: True).
+            dedup_threshold: Jaccard similarity threshold for deduplication (default: 0.95).
 
         Returns:
             QueryResult with search results.
         """
         k = k or config.default_top_k
 
-        results = self._index.search(query_embedding, k=k, filter_fn=filter_fn)
+        # Search index with extra results to account for deduplication
+        search_k = k * 2 if deduplicate else k
+        results = self._index.search(query_embedding, k=search_k, filter_fn=filter_fn)
+
+        # Deduplicate near-identical chunks
+        if deduplicate and results:
+            results = _deduplicate_results(results, similarity_threshold=dedup_threshold)
+            results = results[:k]
 
         return QueryResult(
             query="<pre-computed embedding>",
