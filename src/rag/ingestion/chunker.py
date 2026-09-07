@@ -173,6 +173,9 @@ class DocumentChunker:
             current = chunks[i]
             text = current.text.lstrip()
 
+            # Strip leading markdown header markers for pattern matching
+            text_no_md = text.lstrip("# ").lstrip()
+
             # Check if current chunk is a header-like chunk that should be merged:
             # - Short (<= 100 chars for markdown headers, <= 80 for others)
             # - Starts with markdown header (# ## ### etc.) or known header patterns
@@ -180,35 +183,35 @@ class DocumentChunker:
             # - Not the last chunk
             is_markdown_header = text.startswith(("#", "##", "###", "####", "#####", "######"))
             is_known_header_pattern = (
-                text.lower().startswith("interview question")
-                or text.lower().startswith("advanced note")
-                or text.lower().startswith("note:")
-                or text.lower().startswith("question:")
-                or text.lower().startswith("exam question")
-                or text.lower().startswith("key concept")
-                or text.lower().startswith("summary:")
-                or text.lower().startswith("definition:")
-                or text.lower().startswith("theorem:")
-                or text.lower().startswith("proof:")
-                or text.lower().startswith("algorithm:")
-                or text.lower().startswith("example:")
-                or text.lower().startswith("exercise:")
-                or text.lower().startswith("problem:")
-                or text.lower().startswith("solution:")
-                or text.lower().startswith("important:")
-                or text.lower().startswith("warning:")
-                or text.lower().startswith("tip:")
-                or text.lower().startswith("remember:")
+                text_no_md.lower().startswith("interview question")
+                or text_no_md.lower().startswith("advanced note")
+                or text_no_md.lower().startswith("note:")
+                or text_no_md.lower().startswith("question:")
+                or text_no_md.lower().startswith("exam question")
+                or text_no_md.lower().startswith("key concept")
+                or text_no_md.lower().startswith("summary:")
+                or text_no_md.lower().startswith("definition:")
+                or text_no_md.lower().startswith("theorem:")
+                or text_no_md.lower().startswith("proof:")
+                or text_no_md.lower().startswith("algorithm:")
+                or text_no_md.lower().startswith("example:")
+                or text_no_md.lower().startswith("exercise:")
+                or text_no_md.lower().startswith("problem:")
+                or text_no_md.lower().startswith("solution:")
+                or text_no_md.lower().startswith("important:")
+                or text_no_md.lower().startswith("warning:")
+                or text_no_md.lower().startswith("tip:")
+                or text_no_md.lower().startswith("remember:")
             )
 
             # Don't merge if it's already a complete question (has ?) AND
             # doesn't match known Q&A patterns that need their answers
             is_qa_pattern = (
-                text.lower().startswith("interview question")
-                or text.lower().startswith("exam question")
-                or text.lower().startswith("quiz question")
-                or text.lower().startswith("practice question")
-                or text.lower().startswith("sample question")
+                text_no_md.lower().startswith("interview question")
+                or text_no_md.lower().startswith("exam question")
+                or text_no_md.lower().startswith("quiz question")
+                or text_no_md.lower().startswith("practice question")
+                or text_no_md.lower().startswith("sample question")
             )
             is_complete_question = "?" in text and not is_qa_pattern
 
