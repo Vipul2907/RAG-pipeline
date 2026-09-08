@@ -14,6 +14,7 @@ from rag.embeddings import DummyEmbeddingProvider
 from rag.index import HNSWIndex, BruteForceIndex
 from rag.ingestion import DocumentChunker
 from rag.query import QueryEngine
+from rag.llm import DummyLLMProvider
 from rag.config import config
 
 
@@ -147,7 +148,7 @@ def test_hnsw_with_dedup():
     index = HNSWIndex(dimension=128, M=16, ef_construction=200, ef_search=100)
     index.add(embeddings, chunks)
 
-    engine = QueryEngine(index=index, embedding_provider=embedder)
+    engine = QueryEngine(index=index, embedding_provider=embedder, llm_provider=DummyLLMProvider())
 
     query = "What are the main limitations of ANI?"
 
