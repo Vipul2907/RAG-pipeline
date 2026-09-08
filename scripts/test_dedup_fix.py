@@ -30,10 +30,10 @@ def create_test_documents():
 
     sections = []
 
-    # 9 generic Limitations sections
+    # 9 generic Limitations sections - exact same text (like user's real data)
     for i in range(1, 10):
         sections.append(
-            f"### Limitations\n\n{boilerplate} Section {i} specific context."
+            f"### Limitations\n\n{boilerplate}"
         )
 
     # 1 ANI-specific section (the important one)
@@ -123,11 +123,11 @@ def test_deduplication_fix():
     print(f"  Total results returned: {len(result_dedup.results)}")
 
     if ani_question_rank and ani_question_rank <= 5:
-        print("\n✓ SUCCESS: ANI question now ranks in top 5!")
+        print("\n[SUCCESS] ANI question now ranks in top 5!")
     elif ani_question_rank:
-        print(f"\n⚠ PARTIAL: ANI question ranks at {ani_question_rank} (was 8)")
+        print(f"\n[PARTIAL] ANI question ranks at {ani_question_rank} (was 8)")
     else:
-        print("\n✗ FAILED: ANI question not in top 10")
+        print("\n[FAILED] ANI question not in top 10")
 
     return result_dedup
 
