@@ -6,12 +6,15 @@ followed by nearly identical boilerplate text, plus 1 section with
 ANI-specific content.
 """
 
+import sys
+sys.path.insert(0, "src")
+
 import numpy as np
-from src.rag.embeddings import DummyEmbeddingProvider
-from src.rag.index import HNSWIndex, BruteForceIndex
-from src.rag.ingestion import DocumentChunker
-from src.rag.query import QueryEngine
-from src.rag.config import config
+from rag.embeddings import DummyEmbeddingProvider
+from rag.index import HNSWIndex, BruteForceIndex
+from rag.ingestion import DocumentChunker
+from rag.query import QueryEngine
+from rag.config import config
 
 
 def create_test_documents():
@@ -76,8 +79,9 @@ def test_deduplication_fix():
     index = BruteForceIndex(dimension=128)
     index.add(embeddings, chunks)
 
-    # Create query engine
-    engine = QueryEngine(index=index, embedding_provider=embedder)
+    # Create query engine with dummy LLM provider
+    from rag.llm import DummyLLMProvider
+    engine = QueryEngine(index=index, embedding_provider=embedder, llm_provider=DummyLLMProvider())
 
     # Test query
     query = "What are the main limitations of ANI?"
