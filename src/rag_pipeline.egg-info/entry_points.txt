@@ -1,0 +1,3 @@
+[console_scripts]
+rag-cli = rag.cli:main
+rag-ui = ui.app:main
