@@ -5,6 +5,7 @@ Orchestrates the retrieval process: embedding query, searching index,
 LLM generation with grounded answers and citations.
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import List, Optional
 
