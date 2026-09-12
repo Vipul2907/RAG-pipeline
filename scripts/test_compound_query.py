@@ -119,7 +119,7 @@ def test_compound_query_retrieval():
 
     print(f"\nTotal chunks created: {len(chunks)}")
     for i, chunk in enumerate(chunks):
-        print(f"  Chunk {i}: {chunk.text[:80]}...")
+        print(f"  Chunk {i}: {chunk.text[:80].encode('ascii', 'replace').decode()}...")
 
     # Embed and index
     embedder = DummyEmbeddingProvider(dimension=128)
