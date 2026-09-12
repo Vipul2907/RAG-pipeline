@@ -365,6 +365,77 @@ Context documents:
             query_embedding=query_embedding,
         )
 
+    def search_compound(
+        self,
+        query: str,
+        k: int = None,
+        filter_fn: Optional[callable] = None,
+        deduplicate: bool = True,
+        dedup_threshold: float = 0.95,
+        decompose: bool = True,
+    ) -> QueryResult:
+        """
+        Search with automatic compound query decomposition.
+
+        If the query appears to contain multiple distinct questions and decompose=True,
+        splits the query into sub-questions, searches each separately, and merges
+        results with deduplication.
+
+        Args:
+            query: Query text string (may be compound).
+            k: Number of results to return after deduplication (default from config).
+            filter_fn: Optional filter function for results.
+            deduplicate: Whether to remove near-duplicate chunks (default: True).
+            dedup_threshold: Jaccard similarity threshold for deduplication (default: 0.95).
+            decompose: Whether to attempt compound query decomposition (default: True).
+
+        Returns:
+            QueryResult with merged search results from all sub-queries.
+        """
+        k = k or config.default_top_k
+
+        # Check if we should decompose
+        if not decompose or not _is_compound_query(query):
+            # Not a compound query or decomposition disabled - use regular search
+            return self.search(query, k=k, filter_fn=filter_fn, deduplicate=deduplicate, dedup_threshold=dedup_threshold)
+
+        # Decompose into sub-questions
+        sub_queries = _split_compound_query(query)
+        logger.info(f"Compound query detected, decomposed into {len(sub_queries)} sub-queries: {sub_queries}")
+
+        if len(sub_queries) <= 1:
+            # Decomposition didn't produce multiple parts
+            return self.search(query, k=k, filter_fn=filter_fn, deduplicate=deduplicate, dedup_threshold=dedup_threshold)
+
+        # Search each sub-query separately
+        all_results = []
+        per_subquery_k = max(k, k // len(sub_queries) + 1)  # Get enough from each
+
+        for sub_query in sub_queries:
+            sub_result = self.search(
+                sub_query,
+                k=per_subquery_k,
+                filter_fn=filter_fn,
+                deduplicate=False,  # Don't dedupe per sub-query, do it globally after merge
+            )
+            all_results.extend(sub_result.results)
+            logger.debug(f"Sub-query '{sub_query[:50]}...': {len(sub_result.results)} results")
+
+        # Deduplicate merged results
+        if deduplicate and all_results:
+            all_results = _deduplicate_results(all_results, similarity_threshold=dedup_threshold)
+
+        # Trim to k
+        all_results = all_results[:k]
+
+        logger.info(f"Compound query '{query[:50]}...': merged {len(all_results)} results from {len(sub_queries)} sub-queries")
+
+        return QueryResult(
+            query=query,
+            results=all_results,
+            query_embedding=None,  # No single embedding for compound query
+        )
+
     def generate(
         self,
         query: str,
