@@ -443,6 +443,7 @@ Context documents:
         filter_fn: Optional[callable] = None,
         max_tokens: int = 1024,
         temperature: float = 0.1,
+        decompose_compound_queries: bool = True,
     ) -> RAGResult:
         """
         Full RAG pipeline: retrieve + generate grounded answer.
@@ -453,12 +454,16 @@ Context documents:
             filter_fn: Optional filter for retrieval.
             max_tokens: Max tokens for LLM generation.
             temperature: LLM sampling temperature.
+            decompose_compound_queries: Whether to decompose compound queries into sub-questions
+                and search each separately before merging results (default: True).
 
         Returns:
             RAGResult with grounded answer and citations.
         """
-        # Step 1: Retrieve relevant chunks
-        retrieval_result = self.search(query, k=k, filter_fn=filter_fn)
+        # Step 1: Retrieve relevant chunks (with compound query decomposition if enabled)
+        retrieval_result = self.search_compound(
+            query, k=k, filter_fn=filter_fn, decompose=decompose_compound_queries
+        )
 
         if not retrieval_result.results:
             return RAGResult(
