@@ -137,20 +137,22 @@ def test_compound_query_retrieval():
     print("-" * 70)
     query1 = "What is Artificial Narrow Intelligence and what's its main limitation?"
 
-    # Test WITHOUT decomposition
+    # Test WITHOUT decomposition (using search_compound with decompose=False)
     print("\n--- WITHOUT decomposition ---")
-    result_no_decomp = engine.search(query1, k=5, decompose=False)
+    result_no_decomp = engine.search_compound(query1, k=5, decompose=False)
     for i, r in enumerate(result_no_decomp.results):
         marker = " <-- ANI LIMITATION" if "limitation" in r.chunk.text.lower() else ""
-        print(f"  Rank {i+1}: score={r.score:.4f} | {r.chunk.text[:80]}...{marker}")
+        text_preview = r.chunk.text[:80].encode('ascii', 'replace').decode()
+        print(f"  Rank {i+1}: score={r.score:.4f} | {text_preview}...{marker}")
 
     # Test WITH decomposition
     print("\n--- WITH decomposition ---")
-    result_decomp = engine.search(query1, k=5, decompose=True)
+    result_decomp = engine.search_compound(query1, k=5, decompose=True)
     for i, r in enumerate(result_decomp.results):
         marker = " <-- ANI LIMITATION" if "limitation" in r.chunk.text.lower() else ""
         marker2 = " <-- ANI DEFINITION" if "artificial narrow intelligence" in r.chunk.text.lower() else ""
-        print(f"  Rank {i+1}: score={r.score:.4f} | {r.chunk.text[:80]}...{marker}{marker2}")
+        text_preview = r.chunk.text[:80].encode('ascii', 'replace').decode()
+        print(f"  Rank {i+1}: score={r.score:.4f} | {text_preview}...{marker}{marker2}")
 
     # Check results
     ani_definition_found = any("Artificial Narrow Intelligence" in r.chunk.text and "limitation" not in r.chunk.text.lower() for r in result_decomp.results)
@@ -167,19 +169,21 @@ def test_compound_query_retrieval():
 
     # Test WITHOUT decomposition
     print("\n--- WITHOUT decomposition ---")
-    result_no_decomp2 = engine.search(query2, k=5, decompose=False)
+    result_no_decomp2 = engine.search_compound(query2, k=5, decompose=False)
     for i, r in enumerate(result_no_decomp2.results):
         marker = " <-- BCE" if "cross entropy" in r.chunk.text.lower() else ""
         marker2 = " <-- Q-LEARNING" if "q-learning" in r.chunk.text.lower() else ""
-        print(f"  Rank {i+1}: score={r.score:.4f} | {r.chunk.text[:80]}...{marker}{marker2}")
+        text_preview = r.chunk.text[:80].encode('ascii', 'replace').decode()
+        print(f"  Rank {i+1}: score={r.score:.4f} | {text_preview}...{marker}{marker2}")
 
     # Test WITH decomposition
     print("\n--- WITH decomposition ---")
-    result_decomp2 = engine.search(query2, k=5, decompose=True)
+    result_decomp2 = engine.search_compound(query2, k=5, decompose=True)
     for i, r in enumerate(result_decomp2.results):
         marker = " <-- BCE" if "cross entropy" in r.chunk.text.lower() else ""
         marker2 = " <-- Q-LEARNING" if "q-learning" in r.chunk.text.lower() else ""
-        print(f"  Rank {i+1}: score={r.score:.4f} | {r.chunk.text[:80]}...{marker}{marker2}")
+        text_preview = r.chunk.text[:80].encode('ascii', 'replace').decode()
+        print(f"  Rank {i+1}: score={r.score:.4f} | {text_preview}...{marker}{marker2}")
 
     # Check results
     bce_found = any("cross entropy" in r.chunk.text.lower() for r in result_decomp2.results)
@@ -196,9 +200,9 @@ def test_compound_query_retrieval():
 
     success = ani_definition_found and ani_limitation_found and bce_found and qlearning_found
     if success:
-        print("\n✓ ALL TESTS PASSED - Compound query decomposition works!")
+        print("\n[OK] ALL TESTS PASSED - Compound query decomposition works!")
     else:
-        print("\n✗ SOME TESTS FAILED")
+        print("\n[FAIL] SOME TESTS FAILED")
 
     return success
 
