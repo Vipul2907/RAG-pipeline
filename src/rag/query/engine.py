@@ -518,13 +518,14 @@ Context documents:
         filter_fn: Optional[callable] = None,
         max_tokens: int = 1024,
         temperature: float = 0.1,
+        decompose_compound_queries: bool = True,
     ):
         """
         Streaming RAG generation (if provider supports it).
         Currently falls back to non-streaming.
         """
         # For now, just yield the full result
-        result = self.generate(query, k, filter_fn, max_tokens, temperature)
+        result = self.generate(query, k, filter_fn, max_tokens, temperature, decompose_compound_queries)
         yield result
 
     @property
