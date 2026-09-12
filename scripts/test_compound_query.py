@@ -100,7 +100,7 @@ def test_compound_query_detection():
         assert is_compound == expected_compound, f"Compound detection failed for: {query}"
         assert len(parts) >= expected_min_parts, f"Split failed for: {query} - got {len(parts)} parts"
 
-    print("\n✓ All detection/splitting tests passed!")
+    print("\n[OK] All detection/splitting tests passed!")
 
 
 def test_compound_query_retrieval():
