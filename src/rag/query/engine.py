@@ -77,6 +77,115 @@ def _deduplicate_results(
     return deduplicated
 
 
+def _is_compound_query(query: str) -> bool:
+    """
+    Heuristic detection of compound queries (multiple distinct questions in one).
+
+    Looks for patterns like:
+    - Multiple question marks
+    - "and what" / "and how" / "and why" patterns
+    - Sentences separated by periods that each look like questions
+    - "also" / "additionally" between question-like clauses
+
+    Args:
+        query: The user query string.
+
+    Returns:
+        True if the query appears to contain multiple distinct questions.
+    """
+    # Count question marks
+    question_marks = query.count('?')
+    if question_marks >= 2:
+        return True
+
+    # Check for "and what" / "and how" / "and why" / "and when" / "and where" / "and who"
+    # These often indicate a second question appended to the first
+    compound_patterns = [
+        r'\band\s+(?:what|how|why|when|where|who)\b',
+        r'\b(?:also|additionally|furthermore|moreover)\b.*\?',
+        r'\b(?:then|next)\b.*\?',
+    ]
+    for pattern in compound_patterns:
+        if re.search(pattern, query, re.IGNORECASE):
+            return True
+
+    # Check for multiple question-like sentences separated by periods
+    # Split on sentence boundaries and check if multiple parts look like questions
+    sentences = re.split(r'[.!?]+\s+', query.strip())
+    question_like_count = 0
+    for sent in sentences:
+        sent = sent.strip()
+        if not sent:
+            continue
+        # Check if sentence looks like a question (starts with question word or ends with ?)
+        if (sent.endswith('?') or
+            re.match(r'^\s*(what|how|why|when|where|who|which|can|could|would|should|is|are|do|does|did)\b', sent, re.IGNORECASE)):
+            question_like_count += 1
+
+    if question_like_count >= 2:
+        return True
+
+    return False
+
+
+def _split_compound_query(query: str) -> List[str]:
+    """
+    Split a compound query into sub-questions.
+
+    Uses simple heuristics to split on common patterns:
+    - Split on "and what/how/why/when/where/who" patterns
+    - Split on multiple question marks
+    - Split on sentence boundaries where each part looks like a question
+
+    Args:
+        query: The compound query string.
+
+    Returns:
+        List of sub-questions. Returns [query] if no split is possible.
+    """
+    # First try: split on "and what/how/why/when/where/who" pattern
+    # This handles "What is X and what is Y?" -> ["What is X?", "What is Y?"]
+    split_pattern = r'\s+(?:and|also)\s+(what|how|why|when|where|who)\b'
+    match = re.search(split_pattern, query, re.IGNORECASE)
+    if match:
+        # Split at the match position
+        split_pos = match.start()
+        part1 = query[:split_pos].strip()
+        part2 = query[split_pos:].strip()
+        # Ensure both parts end with question marks
+        if not part1.endswith('?'):
+            part1 += '?'
+        if not part2.endswith('?'):
+            part2 += '?'
+        return [part1, part2]
+
+    # Second try: split on multiple question marks
+    # "What is X? What is Y?" -> ["What is X?", "What is Y?"]
+    if query.count('?') >= 2:
+        parts = [p.strip() + '?' for p in query.split('?') if p.strip()]
+        if len(parts) >= 2:
+            return parts
+
+    # Third try: split on sentence boundaries where each part looks like a question
+    sentences = re.split(r'[.!?]+\s+', query.strip())
+    question_parts = []
+    for sent in sentences:
+        sent = sent.strip()
+        if not sent:
+            continue
+        if (sent.endswith('?') or
+            re.match(r'^\s*(what|how|why|when|where|who|which|can|could|would|should|is|are|do|does|did)\b', sent, re.IGNORECASE)):
+            if not sent.endswith('?'):
+                sent += '?'
+            question_parts.append(sent)
+
+    if len(question_parts) >= 2:
+        return question_parts
+
+    # No split possible
+    return [query]
+
+
 @dataclass(frozen=True)
 class QueryResult:
     """
