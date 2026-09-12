@@ -113,13 +113,18 @@ def _is_compound_query(query: str) -> bool:
     # Split on sentence boundaries and check if multiple parts look like questions
     sentences = re.split(r'[.!?]+\s+', query.strip())
     question_like_count = 0
+    # Question words + imperative verbs that indicate information-seeking
+    question_starters = (
+        'what|how|why|when|where|who|which|can|could|would|should|'
+        'is|are|do|does|did|write|explain|describe|show|tell|give|list|define'
+    )
     for sent in sentences:
         sent = sent.strip()
         if not sent:
             continue
         # Check if sentence looks like a question (starts with question word or ends with ?)
         if (sent.endswith('?') or
-            re.match(r'^\s*(what|how|why|when|where|who|which|can|could|would|should|is|are|do|does|did)\b', sent, re.IGNORECASE)):
+            re.match(rf'^\s*({question_starters})\b', sent, re.IGNORECASE)):
             question_like_count += 1
 
     if question_like_count >= 2:
