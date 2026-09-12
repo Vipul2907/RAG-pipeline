@@ -154,8 +154,9 @@ def test_compound_query_retrieval():
         text_preview = r.chunk.text[:80].encode('ascii', 'replace').decode()
         print(f"  Rank {i+1}: score={r.score:.4f} | {text_preview}...{marker}{marker2}")
 
-    # Check results
-    ani_definition_found = any("Artificial Narrow Intelligence" in r.chunk.text and "limitation" not in r.chunk.text.lower() for r in result_decomp.results)
+    # Check results - ANI definition is in chunk with "Interview Question 16" which also has "limitations"
+    # The definition chunk has "Artificial Narrow Intelligence" in title and mentions limitations in text
+    ani_definition_found = any("Interview Question 16" in r.chunk.text for r in result_decomp.results)
     ani_limitation_found = any("limitation" in r.chunk.text.lower() for r in result_decomp.results)
 
     print(f"\n  ANI Definition found: {ani_definition_found}")
