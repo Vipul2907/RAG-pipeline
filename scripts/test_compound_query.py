@@ -234,17 +234,19 @@ def test_generate_with_decomposition():
     print(f"\nQuery: '{query}'")
     print("\n--- WITH decomposition (default) ---")
     result_decomp = engine.generate(query, k=5, decompose_compound_queries=True)
-    print(f"Answer: {result_decomp.answer[:200]}...")
+    print(f"Answer: {result_decomp.answer[:200].encode('ascii', 'replace').decode()}...")
     print(f"Citations: {len(result_decomp.citations)}")
     for c in result_decomp.citations:
-        print(f"  - {c.source_file}, chunk {c.chunk_index}: {c.text_snippet[:80]}...")
+        snippet = c.text_snippet[:80].encode('ascii', 'replace').decode()
+        print(f"  - {c.source_file}, chunk {c.chunk_index}: {snippet}...")
 
     print("\n--- WITHOUT decomposition ---")
     result_no_decomp = engine.generate(query, k=5, decompose_compound_queries=False)
-    print(f"Answer: {result_no_decomp.answer[:200]}...")
+    print(f"Answer: {result_no_decomp.answer[:200].encode('ascii', 'replace').decode()}...")
     print(f"Citations: {len(result_no_decomp.citations)}")
     for c in result_no_decomp.citations:
-        print(f"  - {c.source_file}, chunk {c.chunk_index}: {c.text_snippet[:80]}...")
+        snippet = c.text_snippet[:80].encode('ascii', 'replace').decode()
+        print(f"  - {c.source_file}, chunk {c.chunk_index}: {snippet}...")
 
 
 if __name__ == "__main__":
