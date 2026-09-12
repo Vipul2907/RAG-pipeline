@@ -174,12 +174,16 @@ def _split_compound_query(query: str) -> List[str]:
     # Third try: split on sentence boundaries where each part looks like a question
     sentences = re.split(r'[.!?]+\s+', query.strip())
     question_parts = []
+    question_starters = (
+        'what|how|why|when|where|who|which|can|could|would|should|'
+        'is|are|do|does|did|write|explain|describe|show|tell|give|list|define'
+    )
     for sent in sentences:
         sent = sent.strip()
         if not sent:
             continue
         if (sent.endswith('?') or
-            re.match(r'^\s*(what|how|why|when|where|who|which|can|could|would|should|is|are|do|does|did)\b', sent, re.IGNORECASE)):
+            re.match(rf'^\s*({question_starters})\b', sent, re.IGNORECASE)):
             if not sent.endswith('?'):
                 sent += '?'
             question_parts.append(sent)
