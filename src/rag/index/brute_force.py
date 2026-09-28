@@ -7,16 +7,17 @@ Stores normalized embeddings in a flat array and computes exact cosine similarit
 
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 import numpy as np
 
 from .base import VectorIndex, SearchResult
 from ..ingestion import Chunk
 from ..config import logger
+from ..retrieval.filters import FilteredSearchMixin
 
 
-class BruteForceIndex(VectorIndex):
+class BruteForceIndex(FilteredSearchMixin, VectorIndex):
     """
     Flat brute-force cosine similarity index.
 
@@ -60,22 +61,22 @@ class BruteForceIndex(VectorIndex):
 
         logger.info(f"Added {len(chunks)} vectors to BruteForceIndex (total: {self._size})")
 
-    def search(
+    def _search_unfiltered(
         self,
         query_embedding: np.ndarray,
         k: int = 10,
-        filter_fn: Optional[callable] = None,
+        ef_search: Optional[int] = None,  # Ignored for brute force
     ) -> List[SearchResult]:
         """
-        Search for top-k most similar vectors using exact cosine similarity.
+        Internal unfiltered search (used by FilteredSearchMixin).
 
         Args:
-            query_embedding: Query vector of shape (dimension,).
-            k: Number of results to return.
-            filter_fn: Optional callable(chunk) -> bool to filter results.
+            query_embedding: Query vector of shape (dimension,)
+            k: Number of results to return
+            ef_search: Ignored for brute force
 
         Returns:
-            List of SearchResult sorted by score descending.
+            List of SearchResult objects, sorted by score descending
         """
         if self._size == 0:
             logger.warning("Search on empty index")
@@ -104,12 +105,10 @@ class BruteForceIndex(VectorIndex):
         top_indices = np.argpartition(scores, -k)[-k:]
         top_indices = top_indices[np.argsort(scores[top_indices])][::-1]  # Sort descending
 
-        # Build results with filtering
+        # Build results (no filtering)
         results = []
         for rank, idx in enumerate(top_indices, 1):
             chunk = self._chunks[idx]
-            if filter_fn and not filter_fn(chunk):
-                continue
             results.append(
                 SearchResult(
                     chunk=chunk,
@@ -118,8 +117,34 @@ class BruteForceIndex(VectorIndex):
                 )
             )
 
-        logger.debug(f"BruteForceIndex search: k={k}, returned={len(results)} results")
+        logger.debug(f"BruteForceIndex _search_unfiltered: k={k}, returned={len(results)} results")
         return results
+
+    def search(
+        self,
+        query_embedding: np.ndarray,
+        k: int = 10,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
+        ef_search: Optional[int] = None,
+    ) -> List[SearchResult]:
+        """
+        Search for top-k most similar vectors using exact cosine similarity.
+
+        Args:
+            query_embedding: Query vector of shape (dimension,).
+            k: Number of results to return.
+            filter_fn: Optional callable(chunk) -> bool to filter results.
+            ef_search: Ignored for brute force (kept for interface compatibility).
+
+        Returns:
+            List of SearchResult sorted by score descending.
+        """
+        # Use FilteredSearchMixin's search if filter provided
+        if filter_fn is not None:
+            return super().search(query_embedding, k=k, filter_fn=filter_fn, ef_search=ef_search)
+
+        # No filter - use fast unfiltered path
+        return self._search_unfiltered(query_embedding, k, ef_search)
 
     def save(self, path: Path) -> None:
         """
