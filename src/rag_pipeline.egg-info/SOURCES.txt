@@ -16,6 +16,11 @@ src/rag/llm/__init__.py
 src/rag/llm/provider.py
 src/rag/query/__init__.py
 src/rag/query/engine.py
+src/rag/retrieval/__init__.py
+src/rag/retrieval/filters.py
+src/rag/retrieval/hybrid.py
+src/rag/retrieval/query_expansion.py
+src/rag/retrieval/reranker.py
 src/rag_pipeline.egg-info/PKG-INFO
 src/rag_pipeline.egg-info/SOURCES.txt
 src/rag_pipeline.egg-info/dependency_links.txt
@@ -26,3 +31,5 @@ src/ui/__init__.py
 src/ui/app.py
 tests/test_brute_force.py
 tests/test_chunker.py
+tests/test_compound_query.py
+tests/test_query_engine.py
