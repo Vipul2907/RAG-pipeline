@@ -11,16 +11,17 @@ import math
 import random
 import time
 from pathlib import Path
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple, Callable
 
 import numpy as np
 
 from .base import VectorIndex, SearchResult
 from ..ingestion import Chunk
 from ..config import logger
+from ..retrieval.filters import FilteredSearchMixin
 
 
-class HNSWIndex(VectorIndex):
+class HNSWIndex(FilteredSearchMixin, VectorIndex):
     """
     Hierarchical Navigable Small World (HNSW) index.
 
@@ -383,19 +384,19 @@ class HNSWIndex(VectorIndex):
         for rem in to_remove:
             self._remove_link(layer, node_id, rem)
 
-    def search(
+    def _search_unfiltered(
         self,
         query_embedding: np.ndarray,
         k: int = 10,
-        filter_fn: Optional[callable] = None,
+        ef_search: Optional[int] = None,
     ) -> List[SearchResult]:
         """
-        Search for top-k nearest neighbors using HNSW (Algorithm 5 from paper).
+        Internal unfiltered search (used by FilteredSearchMixin).
 
         Args:
             query_embedding: Query vector of shape (dimension,)
             k: Number of results to return
-            filter_fn: Optional callable(chunk) -> bool to filter results
+            ef_search: Optional override for ef_search parameter
 
         Returns:
             List of SearchResult objects, sorted by score descending
@@ -426,17 +427,15 @@ class HNSWIndex(VectorIndex):
             ep = self._greedy_search(query, ep, layer)
 
         # Search at layer 0 with ef_search
-        candidates = self._search_layer(query, [ep], self.ef_search, 0)
+        search_ef = ef_search or self.ef_search
+        candidates = self._search_layer(query, [ep], search_ef, 0)
 
-        # Build results with filtering
+        # Build results (no filtering)
         results = []
         for rank, (dist, node_id) in enumerate(candidates, 1):
             if rank > k:
                 break
             chunk = self._node_chunks[node_id]
-            if filter_fn and not filter_fn(chunk):
-                continue
-            # Convert distance to cosine similarity score
             score = 1.0 - dist
             results.append(
                 SearchResult(
@@ -446,8 +445,36 @@ class HNSWIndex(VectorIndex):
                 )
             )
 
-        logger.debug(f"HNSWIndex search: k={k}, returned={len(results)} results")
+        logger.debug(f"HNSWIndex _search_unfiltered: k={k}, returned={len(results)} results")
         return results
+
+    def search(
+        self,
+        query_embedding: np.ndarray,
+        k: int = 10,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
+        ef_search: Optional[int] = None,
+    ) -> List[SearchResult]:
+        """
+        Search for top-k nearest neighbors using HNSW with optional filtering.
+
+        Args:
+            query_embedding: Query vector of shape (dimension,)
+            k: Number of results to return
+            filter_fn: Optional callable(chunk) -> bool to filter results
+            ef_search: Optional override for ef_search parameter
+
+        Returns:
+            List of SearchResult objects, sorted by score descending
+        """
+        # Use FilteredSearchMixin's search if filter provided
+        if filter_fn is not None:
+            # Apply filter multiplier from config
+            self.set_filter_multiplier(config.filtered_search_multiplier)
+            return super().search(query_embedding, k=k, filter_fn=filter_fn, ef_search=ef_search)
+
+        # No filter - use fast unfiltered path
+        return self._search_unfiltered(query_embedding, k, ef_search)
 
     def save(self, path: Path) -> None:
         """
