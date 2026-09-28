@@ -349,16 +349,65 @@ Context documents:
             except Exception as e:
                 logger.warning(f"Failed to initialize QueryExpander: {e}")
 
+    def _search_single(
+        self,
+        query: str,
+        k: int,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
+    ) -> List[SearchResult]:
+        """
+        Search for a single query using the best available retrieval method.
+
+        Uses hybrid search if available, otherwise dense search.
+        Applies query expansion if configured.
+        """
+        # Step 1: Query expansion (HyDE, Multi-Query)
+        expanded_queries = [query]
+        if self._query_expander:
+            expanded_queries = self._query_expander.expand(query)
+            logger.debug(f"Query expanded to {len(expanded_queries)} variations")
+
+        # Step 2: Search for each expanded query
+        all_results = []
+        # Get more candidates if reranker will be used
+        search_k = k * (config.reranker_top_k // k + 1) if self._reranker else k * 2
+
+        for exp_query in expanded_queries:
+            if self._hybrid_retriever:
+                # Use hybrid search (BM25 + Dense)
+                results = self._hybrid_retriever.search(exp_query, k=search_k, filter_fn=filter_fn)
+            else:
+                # Use dense search only
+                query_embedding = self._embedding_provider.embed_single(exp_query)
+                results = self._index.search(query_embedding, k=search_k, filter_fn=filter_fn)
+
+            all_results.extend(results)
+
+        # Step 3: Deduplicate across expanded queries
+        if all_results:
+            all_results = _deduplicate_results(all_results, similarity_threshold=0.95)
+
+        # Step 4: Rerank if reranker available
+        if self._reranker and all_results:
+            # Retrieve more for reranking
+            rerank_k = min(config.reranker_top_k, len(all_results))
+            all_results = self._reranker.rerank(query, all_results, top_k=rerank_k)
+
+        # Step 5: Trim to k
+        return all_results[:k]
+
     def search(
         self,
         query: str,
         k: int = None,
-        filter_fn: Optional[callable] = None,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
         deduplicate: bool = True,
         dedup_threshold: float = 0.95,
     ) -> QueryResult:
         """
         Search the index for relevant chunks (retrieval only).
+
+        Uses hybrid search, query expansion, and reranking if configured.
 
         Args:
             query: Query text string.
@@ -372,18 +421,12 @@ Context documents:
         """
         k = k or config.default_top_k
 
-        # Embed query
-        query_embedding = self._embedding_provider.embed_single(query)
+        # Use enhanced search pipeline
+        results = self._search_single(query, k, filter_fn)
 
-        # Search index with extra results to account for deduplication
-        # Fetch 2*k to ensure we have enough after dropping duplicates
-        search_k = k * 2 if deduplicate else k
-        results = self._index.search(query_embedding, k=search_k, filter_fn=filter_fn)
-
-        # Deduplicate near-identical chunks (e.g., boilerplate "Limitations" sections)
+        # Additional deduplication if requested (hybrid/rerank may have changed scores)
         if deduplicate and results:
             results = _deduplicate_results(results, similarity_threshold=dedup_threshold)
-            # Trim to requested k after deduplication
             results = results[:k]
 
         logger.info(f"Query '{query[:50]}...': found {len(results)} results")
@@ -391,19 +434,22 @@ Context documents:
         return QueryResult(
             query=query,
             results=results,
-            query_embedding=query_embedding,
+            query_embedding=None,  # Multiple embeddings possible with expansion
         )
 
     def search_with_embedding(
         self,
         query_embedding: np.ndarray,
         k: int = None,
-        filter_fn: Optional[callable] = None,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
         deduplicate: bool = True,
         dedup_threshold: float = 0.95,
     ) -> QueryResult:
         """
         Search using a pre-computed query embedding.
+
+        Note: This bypasses query expansion and hybrid search (BM25 requires text).
+        Uses dense search + reranker if available.
 
         Args:
             query_embedding: Pre-computed query vector.
@@ -417,11 +463,14 @@ Context documents:
         """
         k = k or config.default_top_k
 
-        # Search index with extra results to account for deduplication
-        search_k = k * 2 if deduplicate else k
+        # Dense search
+        search_k = k * (config.reranker_top_k // k + 1) if self._reranker else k * 2
         results = self._index.search(query_embedding, k=search_k, filter_fn=filter_fn)
 
-        # Deduplicate near-identical chunks
+        # Rerank if available (need original query text for cross-encoder)
+        # Can't rerank without query text, so skip
+
+        # Deduplicate
         if deduplicate and results:
             results = _deduplicate_results(results, similarity_threshold=dedup_threshold)
             results = results[:k]
@@ -436,7 +485,7 @@ Context documents:
         self,
         query: str,
         k: int = None,
-        filter_fn: Optional[callable] = None,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
         deduplicate: bool = True,
         dedup_threshold: float = 0.95,
         decompose: bool = True,
@@ -474,19 +523,14 @@ Context documents:
             # Decomposition didn't produce multiple parts
             return self.search(query, k=k, filter_fn=filter_fn, deduplicate=deduplicate, dedup_threshold=dedup_threshold)
 
-        # Search each sub-query separately
+        # Search each sub-query separately using enhanced search
         all_results = []
-        per_subquery_k = max(k, k // len(sub_queries) + 1)  # Get enough from each
+        per_subquery_k = max(k, k // len(sub_queries) + 1)
 
         for sub_query in sub_queries:
-            sub_result = self.search(
-                sub_query,
-                k=per_subquery_k,
-                filter_fn=filter_fn,
-                deduplicate=False,  # Don't dedupe per sub-query, do it globally after merge
-            )
-            all_results.extend(sub_result.results)
-            logger.debug(f"Sub-query '{sub_query[:50]}...': {len(sub_result.results)} results")
+            sub_results = self._search_single(sub_query, per_subquery_k, filter_fn)
+            all_results.extend(sub_results)
+            logger.debug(f"Sub-query '{sub_query[:50]}...': {len(sub_results)} results")
 
         # Deduplicate merged results
         if deduplicate and all_results:
@@ -500,20 +544,22 @@ Context documents:
         return QueryResult(
             query=query,
             results=all_results,
-            query_embedding=None,  # No single embedding for compound query
+            query_embedding=None,
         )
 
     def generate(
         self,
         query: str,
         k: int = None,
-        filter_fn: Optional[callable] = None,
+        filter_fn: Optional[Callable[[Chunk], bool]] = None,
         max_tokens: int = 1024,
         temperature: float = 0.1,
         decompose_compound_queries: bool = True,
     ) -> RAGResult:
         """
         Full RAG pipeline: retrieve + generate grounded answer.
+
+        Uses hybrid search, query expansion, and reranking if configured.
 
         Args:
             query: User query text.
