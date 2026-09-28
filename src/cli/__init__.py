@@ -137,18 +137,15 @@ def search(ctx, query, index_path, top_k, hybrid, rerank, hyde, multi_query, com
     index = _load_index(index_path)
     chunks = _load_chunks(index_path)
 
-    # Override config from CLI flags
-    if hybrid is not None:
-        config.use_hybrid_search = hybrid
-    if rerank is not None:
-        config.use_reranker = rerank
-    if hyde is not None:
-        config.use_hyde = hyde
-    if multi_query is not None:
-        config.use_multi_query = multi_query
-
-    # Create engine with chunks for hybrid search
-    engine = QueryEngine(index, chunks=chunks)
+    # Create engine with chunks for hybrid search and runtime overrides
+    engine = QueryEngine(
+        index,
+        chunks=chunks,
+        use_hybrid_search=hybrid,
+        use_reranker=rerank,
+        use_hyde=hyde,
+        use_multi_query=multi_query,
+    )
 
     # Search
     result = engine.search(query, k=top_k, decompose_compound_queries=compound)
@@ -199,18 +196,15 @@ def ask(ctx, query, index_path, top_k, max_tokens, temperature, hybrid, rerank, 
     index = _load_index(index_path)
     chunks = _load_chunks(index_path)
 
-    # Override config from CLI flags
-    if hybrid is not None:
-        config.use_hybrid_search = hybrid
-    if rerank is not None:
-        config.use_reranker = rerank
-    if hyde is not None:
-        config.use_hyde = hyde
-    if multi_query is not None:
-        config.use_multi_query = multi_query
-
-    # Create engine with chunks for hybrid search
-    engine = QueryEngine(index, chunks=chunks)
+    # Create engine with chunks for hybrid search and runtime overrides
+    engine = QueryEngine(
+        index,
+        chunks=chunks,
+        use_hybrid_search=hybrid,
+        use_reranker=rerank,
+        use_hyde=hyde,
+        use_multi_query=multi_query,
+    )
 
     # Generate answer
     from ..rag.llm import get_llm_provider
