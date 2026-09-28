@@ -7,7 +7,7 @@ LLM generation with grounded answers and citations.
 
 import re
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 import numpy as np
 
@@ -16,6 +16,7 @@ from ..embeddings import EmbeddingProvider, get_embedding_provider
 from ..index import VectorIndex, SearchResult
 from ..ingestion import Chunk
 from ..llm import LLMProvider, GenerationResult, get_llm_provider
+from ..retrieval import HybridRetriever, create_hybrid_retriever, get_reranker, get_query_expander
 
 
 def _deduplicate_results(
