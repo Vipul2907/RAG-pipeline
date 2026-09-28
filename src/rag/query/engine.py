@@ -272,6 +272,11 @@ Context documents:
         hybrid_retriever: Optional[HybridRetriever] = None,
         reranker = None,
         query_expander = None,
+        # Runtime overrides for config (since config is frozen)
+        use_hybrid_search: Optional[bool] = None,
+        use_reranker: Optional[bool] = None,
+        use_hyde: Optional[bool] = None,
+        use_multi_query: Optional[bool] = None,
     ):
         """
         Initialize the query engine.
@@ -284,6 +289,10 @@ Context documents:
             hybrid_retriever: Pre-configured hybrid retriever (optional).
             reranker: Pre-configured reranker (optional).
             query_expander: Pre-configured query expander (optional).
+            use_hybrid_search: Override config.use_hybrid_search (optional).
+            use_reranker: Override config.use_reranker (optional).
+            use_hyde: Override config.use_hyde (optional).
+            use_multi_query: Override config.use_multi_query (optional).
         """
         self._index = index
         self._embedding_provider = embedding_provider or get_embedding_provider()
@@ -303,6 +312,12 @@ Context documents:
         self._hybrid_retriever = hybrid_retriever
         self._reranker = reranker
         self._query_expander = query_expander
+
+        # Store runtime overrides
+        self._use_hybrid_search = use_hybrid_search
+        self._use_reranker = use_reranker
+        self._use_hyde = use_hyde
+        self._use_multi_query = use_multi_query
 
         # Auto-initialize from config if not provided
         self._init_retrieval_components()
