@@ -362,7 +362,18 @@ Context documents:
         # Query expander
         if (use_hyde or use_multi_query) and self._query_expander is None:
             try:
+                # Determine expander type based on overrides
+                if use_hyde and use_multi_query:
+                    expander_type = "combined"
+                elif use_hyde:
+                    expander_type = "hyde"
+                elif use_multi_query:
+                    expander_type = "multi_query"
+                else:
+                    expander_type = "none"
+
                 self._query_expander = get_query_expander(
+                    expander_type=expander_type,
                     llm_provider=self._llm_provider,
                     embedding_provider=self._embedding_provider,
                 )
