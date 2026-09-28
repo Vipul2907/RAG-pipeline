@@ -6,8 +6,12 @@ tqdm>=4.66.0
 # Web UI
 streamlit>=1.35.0
 
+# Advanced Retrieval (Phase 3)
+rank-bm25>=0.2.2
+sentence-transformers>=2.2.0
+torch>=2.0.0
+
 # Embedding providers (optional - install as needed)
-# sentence-transformers>=2.2.0  # For HuggingFace embeddings
 # openai>=1.30.0               # For OpenAI embeddings and LLM
 # anthropic>=0.25.0            # For Anthropic LLM
 
