@@ -23,12 +23,17 @@ Provides-Extra: anthropic
 Requires-Dist: anthropic>=0.25.0; extra == "anthropic"
 Provides-Extra: groq
 Requires-Dist: openai>=1.30.0; extra == "groq"
+Provides-Extra: retrieval
+Requires-Dist: rank-bm25>=0.2.2; extra == "retrieval"
+Requires-Dist: sentence-transformers>=2.2.0; extra == "retrieval"
+Requires-Dist: torch>=2.0.0; extra == "retrieval"
 Provides-Extra: all
 Requires-Dist: streamlit>=1.35.0; extra == "all"
 Requires-Dist: sentence-transformers>=2.2.0; extra == "all"
 Requires-Dist: torch>=2.0.0; extra == "all"
 Requires-Dist: openai>=1.30.0; extra == "all"
 Requires-Dist: anthropic>=0.25.0; extra == "all"
+Requires-Dist: rank-bm25>=0.2.2; extra == "all"
 
 # RAG Pipeline
 
