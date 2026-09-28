@@ -244,7 +244,11 @@ class QueryEngine:
     High-level query engine for RAG retrieval and generation.
 
     Combines embedding provider, vector index, and LLM provider
-    to provide a complete RAG pipeline.
+    to provide a complete RAG pipeline with advanced retrieval features:
+    - Hybrid search (BM25 + Dense via RRF)
+    - Cross-encoder reranking
+    - Query expansion (HyDE, Multi-Query)
+    - Metadata filtering
     """
 
     # System prompt for grounded RAG generation
@@ -264,6 +268,10 @@ Context documents:
         index: VectorIndex,
         embedding_provider: Optional[EmbeddingProvider] = None,
         llm_provider: Optional[LLMProvider] = None,
+        chunks: Optional[List[Chunk]] = None,
+        hybrid_retriever: Optional[HybridRetriever] = None,
+        reranker = None,
+        query_expander = None,
     ):
         """
         Initialize the query engine.
@@ -272,6 +280,10 @@ Context documents:
             index: Vector index to search.
             embedding_provider: Embedding provider (default from config).
             llm_provider: LLM provider for generation (default from config).
+            chunks: All chunks in the index (required for hybrid search).
+            hybrid_retriever: Pre-configured hybrid retriever (optional).
+            reranker: Pre-configured reranker (optional).
+            query_expander: Pre-configured query expander (optional).
         """
         self._index = index
         self._embedding_provider = embedding_provider or get_embedding_provider()
@@ -286,11 +298,56 @@ Context documents:
         # Initialize LLM provider
         self._llm_provider = llm_provider or get_llm_provider()
 
+        # Initialize advanced retrieval components
+        self._chunks = chunks or []
+        self._hybrid_retriever = hybrid_retriever
+        self._reranker = reranker
+        self._query_expander = query_expander
+
+        # Auto-initialize from config if not provided
+        self._init_retrieval_components()
+
         logger.info(
             f"Initialized QueryEngine: index={type(self._index).__name__}, "
             f"embedder={type(self._embedding_provider).__name__}, "
-            f"llm={type(self._llm_provider).__name__} ({self._llm_provider.model_name})"
+            f"llm={type(self._llm_provider).__name__} ({self._llm_provider.model_name}), "
+            f"hybrid={self._hybrid_retriever is not None}, "
+            f"reranker={self._reranker is not None}, "
+            f"expander={self._query_expander is not None}"
         )
+
+    def _init_retrieval_components(self) -> None:
+        """Initialize retrieval components from config if not provided."""
+        # Hybrid retriever
+        if config.use_hybrid_search and self._hybrid_retriever is None and self._chunks:
+            try:
+                self._hybrid_retriever = create_hybrid_retriever(
+                    dense_index=self._index,
+                    embedding_provider=self._embedding_provider,
+                    chunks=self._chunks,
+                )
+                logger.info("Initialized HybridRetriever from config")
+            except Exception as e:
+                logger.warning(f"Failed to initialize HybridRetriever: {e}")
+
+        # Reranker
+        if config.use_reranker and self._reranker is None:
+            try:
+                self._reranker = get_reranker()
+                logger.info(f"Initialized Reranker: {self._reranker.model_name}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Reranker: {e}")
+
+        # Query expander
+        if (config.use_hyde or config.use_multi_query) and self._query_expander is None:
+            try:
+                self._query_expander = get_query_expander(
+                    llm_provider=self._llm_provider,
+                    embedding_provider=self._embedding_provider,
+                )
+                logger.info(f"Initialized QueryExpander: {type(self._query_expander).__name__}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize QueryExpander: {e}")
 
     def search(
         self,
