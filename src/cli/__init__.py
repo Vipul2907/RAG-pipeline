@@ -147,8 +147,11 @@ def search(ctx, query, index_path, top_k, hybrid, rerank, hyde, multi_query, com
         use_multi_query=multi_query,
     )
 
-    # Search
-    result = engine.search(query, k=top_k, decompose_compound_queries=compound)
+    # Search - use search_compound if compound decomposition is requested
+    if compound:
+        result = engine.search_compound(query, k=top_k)
+    else:
+        result = engine.search(query, k=top_k)
 
     # Display results
     click.echo(f"\nFound {len(result.results)} results:\n")
