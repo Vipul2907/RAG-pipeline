@@ -94,14 +94,28 @@ class HybridRetriever:
         top_indices = np.argpartition(scores, -k)[-k:]
         top_indices = top_indices[np.argsort(scores[top_indices])][::-1]
 
+        # Normalize BM25 scores to [-1, 1] range for SearchResult validation
+        # BM25 scores can be arbitrarily large, so we use a soft normalization
+        if len(top_indices) > 0:
+            max_score = scores[top_indices[0]]
+            min_score = scores[top_indices[-1]]
+            # If all scores are the same, normalize to 0
+            if max_score == min_score:
+                normalized_scores = np.zeros_like(scores[top_indices])
+            else:
+                # Normalize to [0, 1] then scale to [-1, 1]
+                normalized_scores = 2 * (scores[top_indices] - min_score) / (max_score - min_score) - 1
+        else:
+            normalized_scores = np.array([])
+
         # Convert to SearchResult
         results = []
-        for rank, idx in enumerate(top_indices, 1):
+        for rank, (idx, norm_score) in enumerate(zip(top_indices, normalized_scores), 1):
             if scores[idx] <= 0:
                 continue
             results.append(SearchResult(
                 chunk=self.chunks[idx],
-                score=float(scores[idx]),
+                score=float(norm_score),
                 rank=rank,
             ))
 
