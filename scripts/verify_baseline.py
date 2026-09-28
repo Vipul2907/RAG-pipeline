@@ -77,7 +77,7 @@ def main():
     print("\n6. Running search tests...")
     # Use dummy LLM provider for testing (no API key required)
     dummy_llm = get_llm_provider("dummy")
-    engine = QueryEngine(loaded_index, llm_provider=dummy_llm)
+    engine = QueryEngine(loaded_index, llm_provider=dummy_llm, chunks=chunks)
 
     test_queries = [
         "What is machine learning?",
