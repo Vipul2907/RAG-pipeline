@@ -333,8 +333,14 @@ Context documents:
 
     def _init_retrieval_components(self) -> None:
         """Initialize retrieval components from config if not provided."""
+        # Use runtime overrides if provided, otherwise fall back to config
+        use_hybrid = self._use_hybrid_search if self._use_hybrid_search is not None else config.use_hybrid_search
+        use_reranker = self._use_reranker if self._use_reranker is not None else config.use_reranker
+        use_hyde = self._use_hyde if self._use_hyde is not None else config.use_hyde
+        use_multi_query = self._use_multi_query if self._use_multi_query is not None else config.use_multi_query
+
         # Hybrid retriever
-        if config.use_hybrid_search and self._hybrid_retriever is None and self._chunks:
+        if use_hybrid and self._hybrid_retriever is None and self._chunks:
             try:
                 self._hybrid_retriever = create_hybrid_retriever(
                     dense_index=self._index,
@@ -346,7 +352,7 @@ Context documents:
                 logger.warning(f"Failed to initialize HybridRetriever: {e}")
 
         # Reranker
-        if config.use_reranker and self._reranker is None:
+        if use_reranker and self._reranker is None:
             try:
                 self._reranker = get_reranker()
                 logger.info(f"Initialized Reranker: {self._reranker.model_name}")
@@ -354,7 +360,7 @@ Context documents:
                 logger.warning(f"Failed to initialize Reranker: {e}")
 
         # Query expander
-        if (config.use_hyde or config.use_multi_query) and self._query_expander is None:
+        if (use_hyde or use_multi_query) and self._query_expander is None:
             try:
                 self._query_expander = get_query_expander(
                     llm_provider=self._llm_provider,
