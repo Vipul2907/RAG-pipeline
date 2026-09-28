@@ -4,13 +4,14 @@ Provides hybrid search, cross-encoder reranking, query expansion,
 and filtered search capabilities.
 """
 
-from .hybrid import HybridRetriever
+from .hybrid import HybridRetriever, create_hybrid_retriever
 from .reranker import Reranker, BGEReranker, MSMarcoReranker, get_reranker
 from .query_expansion import QueryExpander, HyDEExpander, MultiQueryExpander, NoExpander, get_query_expander
 from .filters import FilteredSearchMixin, apply_filter
 
 __all__ = [
     "HybridRetriever",
+    "create_hybrid_retriever",
     "Reranker",
     "BGEReranker",
     "MSMarcoReranker",
